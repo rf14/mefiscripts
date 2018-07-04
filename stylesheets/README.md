@@ -1,1 +1,1 @@
-Stylesheets installable by Stylish.
+This directory is for stylesheets installable by Stylish.

@@ -1,3 +1,6 @@
+Mefiscripts
+===========
+
 This is a community-managed repository for development and maintenance of customization scripts for Metafilter.
 Userscripts, styles, and bookmarklets are all welcome.
 
