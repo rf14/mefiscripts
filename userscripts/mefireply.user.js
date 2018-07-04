@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MefiReply
 // @namespace    https://github.com/emanuelfeld
-// @version      0.2
-// @description  Adds anchor to quote-reply and link back to original comments. Select the text you want quoted or just click 'reply' to include everything.
+// @version      0.1
+// @description  Adds anchor to quote-reply and link back to original comments
 // @author       Emanuel Feld
 // @include      http://*.metafilter.com/*
 // @include      https://*.metafilter.com/*
@@ -12,42 +12,31 @@
 (function() {
     'use strict';
 
-    let loggedInModern = document.getElementsByClassName('profile').length > 0;
-    let loggedInClassic = document.getElementById('navoften') !== null;
     let replyArea = document.getElementById('comment');
+    let pageLocation = location.protocol + '//' + location.host + location.pathname;
 
-    // run only if logged in and thread not archived
-    if ((loggedInModern || loggedInClassic) && replyArea) {
-        run();
+    let host = location.host;
+    if (host.indexOf('www.') === 0) {
+        host = host.slice(4);
     }
 
-    function run () {
-        let pageLocation = location.protocol + '//' + location.host + location.pathname;
+    let site = host.split('.')[0];
 
-        let host = location.host;
-        if (host.indexOf('www.') === 0) {
-            host = host.slice(4);
-        }
+    appendReplyLinks(site);
 
-        let site = host.split('.')[0];
-
-        appendReplyLinks(site, pageLocation);
-
-        // monitor for new comments
-        let observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function (mutationRecord) {
-              let newDiv = document.getElementById('newcommentsmsg');
-              if (newDiv.style.display === 'none') {
-                appendReplyLinks(site, pageLocation);
-              }
-            });
+    // monitor for new comments
+    let observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function (mutationRecord) {
+          let newDiv = document.getElementById('newcommentsmsg');
+          if (newDiv.style.display === 'none') {
+            appendReplyLinks(site);
+          }
         });
+    });
 
-        let target = document.getElementById('newcommentsmsg');
-        observer.observe(target, { attributes : true, attributeFilter : ['style'] });
-    }
+    let target = document.getElementById('newcommentsmsg');
+    observer.observe(target, { attributes : true, attributeFilter : ['style'] });
 
-    // check if element actually is a post comment
     function isComment (element, site) {
         return (['metafilter', 'projects', 'music', 'irl', 'metatalk'].indexOf(site) > -1 &&
                     element.id === '' &&
@@ -55,10 +44,9 @@
                 (['ask', 'fanfare'].indexOf(site) > -1 && element.id.indexOf('c') === 0);
     }
 
-    // add a reply link to each comment
-    function appendReplyLinks (site, pageLocation) {
+    // a reply link to each comment
+    function appendReplyLinks (site) {
         let comments = document.querySelectorAll('div.comments');
-
         for (let i = 0; i < comments.length; i++) {
             if (isComment(comments[i], site)) {
                 let commentMetaLinks = comments[i].querySelectorAll('.smallcopy > a');
@@ -86,39 +74,18 @@
         }
     }
 
-    // return the selected text if any, otherwise null
-    function getSelectedText () {
-        let selection = window.getSelection();
-        let selectedText = selection.toString().trim();
-
-        if (selectedText.length && selection.isCollapsed === false) {
-            return selectedText;
-        } else {
-            return null;
-        }
-    }
-
     // add text to comment box
     function addReply (username, id, anchor) {
-        let quoteText;
+        let commentText;
         try {
-            quoteText = document.getElementById('c' + id).textContent;
+            commentText = document.getElementById('c' + id).textContent;
         } catch (e) {
-            quoteText = document.querySelector('[name="' + id + '"]')
+            commentText = document.querySelector('[name="' + id + '"]')
                                   .nextElementSibling.textContent;
         }
-        quoteText = quoteText.split('posted by').slice(0, -1).join().trim();
+       commentText = commentText.split('posted by').slice(0, -1).join().trim();
 
-        let selectedText = getSelectedText();
-
-        // quote selected text instead if it's in full comment
-        if (selectedText && quoteText.indexOf(selectedText) > -1) {
-            quoteText = selectedText;
-        }
-
-        let replyText = '<a href="' + anchor + '">> ' + username + ':</a>\r\n<em>"' + quoteText + '"</em>\r\n\r\n';
-
-        let replyArea = document.getElementById('comment');
+        let replyText = '<a href="' + anchor + '">> ' + username + ':</a>\r\n<em>"' + commentText + '"</em>\r\n\r\n';
         replyArea.value = replyArea.value.trim();
         if (replyArea.value.length !== 0) {
             replyArea.value += '\r\n\r\n' + replyText;
@@ -126,5 +93,4 @@
             replyArea.value = replyText;
         }
     }
-
 })();
