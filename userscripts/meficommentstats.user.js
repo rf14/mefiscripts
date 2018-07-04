@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MeFi Comment Audit
 // @namespace    https://github.com/emanuelfeld
-// @version      0.2
+// @version      0.1
 // @description  How much are you and others commenting in a thread?
 // @author       Emanuel Feld
 // @include      http://*.metafilter.com/*
@@ -43,11 +43,6 @@
     let authorId = getUserId(commentAuthors.pop());
     commentAuthors = commentAuthors.slice(1);
 
-    if (!userCommentCount.hasOwnProperty(authorId)) {
-      userCommentCount[authorId] = 0;
-      userCommentLength[authorId] = 0;
-    }
-
     for (let i = commentIndex; i < comments.length; i++) {
       try {
         let userId = getUserId(commentAuthors[i]);
@@ -71,7 +66,9 @@
     threadCommenterCount = Object.keys(userCommentCount).length;
     let authorCommenterPercentage;
 
-    if (userCommentCount[authorId] === 0) {
+    if (!userCommentCount.hasOwnProperty(authorId)) {
+      userCommentCount[authorId] = 0;
+      userCommentLength[authorId] = 0;
       authorCommenterPercentage = 0;
       threadOtherCommenterCount = threadCommenterCount;
     } else {
@@ -84,7 +81,6 @@
 
     let userCommentCountText = userCommentCount[authorId] === 1 ? 'comment' : 'comments';
     let threadCommenterCountText = threadOtherCommenterCount === 1 ? 'person has' : 'people have';
-
     statsDiv.innerHTML = `
     <p>
       You have contributed ${userCommentCount[authorId]} ${userCommentCountText} to this thread.
